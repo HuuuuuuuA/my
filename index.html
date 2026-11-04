@@ -1,342 +1,189 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國小自然科學挑戰賽</title>
-    <!-- 引入 Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- 引入 Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Noto Sans TC', sans-serif; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .slide-in-bottom { animation: slideInBottom 0.3s ease-out forwards; }
-        @keyframes slideInBottom {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>國小自然科學挑戰賽</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Noto Sans TC', sans-serif; }
+    .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
 </head>
-<body class="bg-[#F0FDF4] min-h-screen text-gray-800 flex flex-col items-center overflow-x-hidden py-8 px-4">
+<body class="bg-[#F0FDF4] min-h-screen text-gray-800 flex flex-col items-center py-8 px-4">
 
-    <!-- 主容器 -->
-    <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-emerald-800/10 flex flex-col">
-        
-        <!-- Header -->
-        <div class="bg-emerald-700 text-white p-6 relative overflow-hidden shrink-0">
-            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent mix-blend-overlay"></div>
-            <div class="flex flex-col md:flex-row items-center justify-between relative z-10">
-                <div class="flex items-center gap-4">
-                    <div class="bg-white p-2 rounded-full text-emerald-700">
-                        <i data-lucide="book-open" class="w-8 h-8"></i>
-                    </div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">國小自然科學挑戰賽</h1>
-                </div>
-                <div id="progress-container" class="mt-4 md:mt-0 bg-emerald-800/50 px-4 py-2 rounded-full font-bold border border-emerald-500/50 text-emerald-50 flex items-center gap-2 shadow-inner" style="display: none;">
-                    <span class="text-sm opacity-80">總進度</span>
-                    <span class="text-lg" id="progress-text">1 / 15</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 內容區 (動態渲染) -->
-        <div id="content-area" class="p-6 md:p-10 flex-1 relative min-h-[400px]">
-            <div class="flex justify-center items-center h-full text-emerald-600 font-bold text-xl">
-                測驗系統載入中，請稍候...
-            </div>
-        </div>
+  <!-- 主容器 -->
+  <div class="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-emerald-800/10 flex flex-col">
+    <!-- 頂部標題與進度 -->
+    <div class="bg-emerald-700 text-white p-6 relative flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+      <div class="flex items-center gap-3">
+        <span class="w-3.5 h-3.5 rounded-full bg-emerald-300"></span>
+        <h1 class="text-2xl font-black tracking-wide">國小自然科學挑戰賽</h1>
+      </div>
+      <div id="progress-container" class="bg-emerald-800/60 px-4 py-1.5 rounded-full text-sm font-bold border border-emerald-500/50 text-emerald-50 self-start sm:self-auto">
+        <span>總進度：</span>
+        <span id="progress-text">1 / 8</span>
+      </div>
     </div>
 
-    <footer class="mt-8 text-emerald-700/60 font-medium text-center">
-        <p>持續學習，探索自然科學的奧秘！ 🌿</p>
-    </footer>
-
-<script>
-// --- 題庫資料 ---
-const QUIZ_DATA = [
-  { type: 'mc', question: '根據地表物質的顆粒大小，下列哪一個排序是正確的？', options: ['① 礫石 > 土壤 > 沙', '② 沙 > 礫石 > 土壤', '③ 礫石 > 沙 > 土壤', '④ 土壤 > 沙 > 礫石'], answer: '③ 礫石 > 沙 > 土壤', points: 4, explanation: '地表物質依顆粒大小排列為：礫石(最大) > 沙 > 土壤(最細小)。礫石是很粗的石頭，沙子次之，土壤則是非常細緻的微小顆粒喔！' },
-  { type: 'mc', question: '下列哪一項行為會對地表造成破壞？', options: ['① 定期清理垃圾', '② 維護好山林樹木', '③ 做好水土保持', '④ 開挖山坡地'], answer: '④ 開挖山坡地', points: 4, explanation: '隨意開挖山坡地會破壞原有的植被和地形，失去植物根部的保護，只要大雨一來，就很容易造成水土流失甚至山崩喔！' },
-  { type: 'mc', question: '人類大量砍伐樹木，可能引發下列哪一種災害？', options: ['① 森林大火', '② 土石流', '③ 地震', '④ 颱風'], answer: '② 土石流', points: 4, explanation: '森林裡的樹木根系能夠緊緊抓住土壤，並且涵養水分。大量砍伐樹木會讓山坡地失去保護傘，遇到豪雨時就容易引發可怕的土石流。' },
-  { type: 'mc', question: '進行水域環境調查時，下列哪一種做法是不正確的？', options: ['① 攜帶望遠鏡、撈網等觀察物品', '② 單獨跑到水深的地方觀察', '③ 將水生生物放回原處', '④ 注意安全'], answer: '② 單獨跑到水深的地方觀察', points: 4, explanation: '安全第一！進行任何戶外水域調查，絕對不可以單獨行動，更不可以跑到水深不明的危險區域，一定要有師長陪同才行！' },
-  { type: 'mc', question: '海邊的沙丘在不同時間的樣貌會不一樣，主要是什麼作用造成的？', options: ['① 雨水和風', '② 雨水和人類', '③ 雨水和小動物', '④ 人類和小動物'], answer: '① 雨水和風', points: 4, explanation: '海邊的地形缺乏遮蔽物，長時間受到強風的吹襲以及雨水的沖刷(侵蝕、搬運、堆積作用)，沙丘的形狀和位置就會不斷改變。' },
-  { type: 'mc', question: '下列哪一種水生動物是利用腹足爬行？', options: ['① 蛙', '② 蝦', '③ 螺', '④ 龜'], answer: '③ 螺', points: 4, explanation: '螺類或蝸牛等軟體動物，身體底部有發達的肌肉構造稱為「腹足」，牠們會分泌黏液，利用腹足的肌肉收縮在物體表面滑行。' },
-  { type: 'mc', question: '我們吃的稻米是屬於哪一種類型的水生植物？', options: ['① 浮葉性', '② 挺水性', '③ 沉水性', '④ 漂浮性'], answer: '② 挺水性', points: 4, explanation: '水稻的根是固定生長在水底泥土裡的，但它的莖和葉會挺出水面生長，這就是標準的「挺水性」水生植物特徵喔！' },
-  { type: 'mc', question: '造成附近海域珊瑚白化的最主要原因是什麼？', options: ['① 農藥滲入土壤造成海域汙染', '② 工廠排放熱廢水造成海水溫度升高', '③ 河川地開挖砂石', '④ 亂丟垃圾造成汙染'], answer: '② 工廠排放熱廢水造成海水溫度升高', points: 4, explanation: '珊瑚對生長環境的溫度非常敏感。當海水溫度異常升高時，與珊瑚共生的藻類會離開，導致珊瑚失去色彩變成白色，若情況持續珊瑚就會死亡。' },
-  
-  { type: 'tf_list', title: '是非勾選題：魚適應水中生活', question: '關於魚適應水中生活的敘述，正確的請選✔，錯誤的請選✕。', pointsPerOption: 2, options: [ { id: 'F_T1', text: '① 魚的身體外形頭和尾比較粗大，中間軀幹比較細小，可以幫助魚減少在水中的阻力。', answer: 'X' }, { id: 'F_T2', text: '② 魚利用魚鰭的擺動來控制游動的方向。', answer: 'O' }, { id: 'F_T3', text: '③ 魚利用口和鰓蓋不停的一開一合，完成呼吸。', answer: 'O' } ], explanation: '魚的身體呈現「紡錘型」(中間粗大、頭尾尖細)才能減少阻力。牠們用口吞水並從「鰓」過濾氧氣來呼吸，並透過胸鰭、尾鰭等「魚鰭」的擺動來推進和控制方向。' },
-  { type: 'tf_list', title: '素養題：關於地震的敘述', question: '根據地震報告與所學知識，正確的請選✔，錯誤的請選✕。', pointsPerOption: 2, report: { title: '中央氣象署地震測報中心', number: '第113267號地震報告', time: '113年 4月23日 2時32分49.2秒', epicenter: '北緯 23.85° 東經 121.52°', depth: '7.7公里', magnitude: '6.2', relativeLocation: '花蓮縣政府西南方18.8公里 (位於花蓮縣壽豐鄉)', intensitiesLeft: ['花蓮縣地區最大震度5弱', '臺中市地區最大震度4級', '宜蘭縣地區最大震度4級', '南投縣地區最大震度4級'], intensitiesRight: ['苗栗縣地區最大震度3級', '新竹縣地區最大震度3級', '屏東縣地區最大震度2級', '澎湖縣地區最大震度1級'] }, options: [ { id: 'EQ_T1', text: '① 中央健保署網站可尋找地震相關報告。', answer: 'X' }, { id: 'EQ_T2', text: '② 震央是引發地震的位置。', answer: 'X' }, { id: 'EQ_T3', text: '③ 第113267號地震芮氏規模是6.2。', answer: 'O' }, { id: 'EQ_T4', text: '④ 第113267號地震，臺灣各地測得的芮氏規模都是一樣。', answer: 'O' }, { id: 'EQ_T5', text: '⑤ 第113267號地震，花蓮縣地區居民感受到的搖晃程度，會比苗栗縣地區強烈。', answer: 'O' }, { id: 'EQ_T6', text: '⑥ 越靠近震央的地區，人體感受到地面搖晃震度會越大。', answer: 'O' }, { id: 'EQ_T7', text: '⑦ 地震會形成堰塞湖、山坡地崩塌。', answer: 'O' }, { id: 'EQ_T8', text: '⑧ 避難救生包內要準備新鮮的水果。', answer: 'X' } ], explanation: '找地震資料要到「中央氣象署」；地底下發生錯動的地方叫「震源」，地表對應的位置才是「震央」。每次地震的「規模(釋放的能量)」只有一個，但「震度(搖晃程度)」會因為距離震央的遠近而有所不同喔！' },
-  
-  { type: 'tf', question: '地表上除了生物之外，還有非生物，例如：空氣、水、岩石。', options: ['O', 'X'], answer: 'O', points: 4, explanation: '地球環境是由各種生物與非生物共同組成的。空氣、水、土壤、岩石、陽光等，都是維持自然界運作與生命生存不可或缺的非生物因子。' },
-  { type: 'tf', question: '臺灣位於板塊交界處，當板塊互相擠壓時會造成地層移動產生震動，這是臺灣地震頻繁的主因。', options: ['O', 'X'], answer: 'O', points: 4, explanation: '非常正確！臺灣正好位在「菲律賓海板塊」和「歐亞大陸板塊」的交界帶(環太平洋地震帶)上，板塊持續的擠壓活動造就了臺灣，也帶來了頻繁的地震。' },
-  { type: 'tf', question: '布袋蓮葉柄具有儲存空氣的構造，因此可以漂浮在水面上，以適應陸域環境。', options: ['O', 'X'], answer: 'X', points: 4, explanation: '前半段敘述是對的，布袋蓮膨大的葉柄裡有氣室可以儲存空氣幫助漂浮，但這是為了適應「水域」環境(漂浮性水生植物)，而不是陸域環境喔！' },
-  { type: 'mc', question: '為了給魚一條回家的路，人類以生態工程建造「魚梯」，下列哪一項不正確？', options: ['① 讓魚回到上游繁殖', '② 為了讓環境與生態之間取得平衡', '③ 維護生物生存的權利', '④ 讓人類方便行走'], answer: '④ 讓人類方便行走', points: 4, explanation: '「魚梯」是專門設計給迴游性魚類(例如櫻花鉤吻鮭)克服攔沙壩帶來的水位落差，幫助牠們順利游回上游產卵的生態通道，不是給人類行走的喔！' },
-  
-  { type: 'checkbox', title: '多選題：水域環境紀錄項目', question: '探索水域環境時，紀錄表中須包含哪些項目？', pointsPerOption: 2, options: [ { id: 'W1', text: '(1) 水域類型', isCorrect: true }, { id: 'W2', text: '(2) 水質情況', isCorrect: true }, { id: 'W3', text: '(3) 月亮方位', isCorrect: false }, { id: 'W4', text: '(4) 水流速度', isCorrect: true }, { id: 'W5', text: '(5) 水中生物', isCorrect: true } ], explanation: '進行水域環境調查時，我們需要記錄水域的基本狀態（如：類型、水質、水流速度），以及觀察到的「水中生物」。至於「月亮方位」跟水域生態調查沒有直接關係，不需要特別記錄喔！' },
-  { type: 'checkbox', title: '多選題：沉水性水生植物', question: '關於【沉水性】水生植物的特徵，下列敘述哪些是正確的？', pointsPerOption: 2, options: [ { id: 'C1', text: '(1) 根生長在水底的泥土裡', isCorrect: true }, { id: 'C2', text: '(2) 莖、葉柔軟且沉在水中，會隨水位高低伸展彎曲。', isCorrect: true }, { id: 'C3', text: '(3) 水位較高時，莖、葉會伸展直立', isCorrect: false }, { id: 'C4', text: '(4) 莖、葉在水中固定不動', isCorrect: false } ], explanation: '【沉水性植物】(例如：水蘊草)的根通常固定在水底泥土中，整株植物都沉在水面下。它們的莖葉非常柔軟，不能直立，而是會隨著水流或水位的變化而彎曲漂動喔！' },
-  { type: 'checkbox', title: '多選題：保護森林的好處', question: '保護森林有哪些好處？', pointsPerOption: 1, options: [ { id: 'F1', text: '(1) 淨化空氣', isCorrect: true }, { id: 'F2', text: '(2) 減少氧氣含量', isCorrect: false }, { id: 'F3', text: '(3) 提供動物棲息地', isCorrect: true }, { id: 'F4', text: '(4) 水土不易流失', isCorrect: true }, { id: 'F5', text: '(5) 增加適合人類居住的面積', isCorrect: false } ], explanation: '森林被稱為「地球之肺」，植物行光合作用可以吸收二氧化碳、釋放氧氣來【淨化空氣】。發達的根系能抓住土壤，讓【水土不易流失】。茂密的森林更是無數野生動物溫暖的【棲息地】。' },
-  { type: 'checkbox', title: '多選題：保護地表環境', question: '人類該如何保護地表環境、讓生物生存呢？', pointsPerOption: 1, options: [ { id: 'E1', text: '(1) 減少排放汙水', isCorrect: true }, { id: 'E2', text: '(2) 避免砍伐森林', isCorrect: true }, { id: 'E3', text: '(3) 在山坡地種菜', isCorrect: false }, { id: 'E4', text: '(4) 整治河川', isCorrect: true } ], explanation: '愛護地球要從源頭做起！減少汙染(不亂排廢水)、保護自然棲地(不亂砍樹、用心整治受傷的河川)都是好方法。在陡峭的山坡地種菜會破壞植被，容易引起土石流，這是不對的喔！' },
-  { type: 'checkbox', title: '多選題：防震準備', question: '下列防震準備的內容，哪些是正確的呢？', pointsPerOption: 1, options: [ { id: 'EQ1', text: '(1) 地震發生時要立即把櫥櫃釘牢', isCorrect: false }, { id: 'EQ2', text: '(2) 地震發生時要搭電梯不走樓梯', isCorrect: false }, { id: 'EQ3', text: '(3) 平時要熟悉逃生路線圖', isCorrect: true }, { id: 'EQ4', text: '(4) 平時要進行防震演練', isCorrect: true }, { id: 'EQ5', text: '(5) 地震發生後要檢查房屋有無龜裂', isCorrect: true }, { id: 'EQ6', text: '(6) 地震發生時要準備避難救生包', isCorrect: false }, { id: 'EQ7', text: '(7) 地震發生時要注意掉落物', isCorrect: true }, { id: 'EQ8', text: '(8) 地震發生後要檢查瓦斯設備有無毀損，確認安全後再使用', isCorrect: true } ], explanation: '防震準備必須在「平時」就做好(如：固定家具、準備救生包、演練)。地震「發生時」絕對不能搭電梯，要立刻就地掩蔽並注意掉落物。「發生後」則務必檢查房屋與管線，確保環境安全。' },
-  
-  { type: 'match', title: '連連看：生物與適合生存的地表環境', pointsPerPair: 2, left: [ { id: 'L1', text: '1. 西瓜' }, { id: 'L2', text: '2. 水稻' }, { id: 'L3', text: '3. 螞蟻' }, { id: 'L4', text: '4. 栗喉蜂虎' }, { id: 'L5', text: '5. 招潮蟹' }, ], right: [ { id: 'R1', text: 'A. 有黏性的溼潤土壤' }, { id: 'R2', text: 'B. 鬆散且排水性好的土壤' }, { id: 'R3', text: 'C. 土壤裡的地下洞穴' }, { id: 'R4', text: 'D. 鬆軟的海濱泥灘地' }, { id: 'R5', text: 'E. 陡峭的土丘' }, ], answers: { 'L1': 'R2', 'L2': 'R1', 'L3': 'R3', 'L4': 'R5', 'L5': 'R4', }, explanation: '每一種生物都有適應環境的特別本領喔！\n• 西瓜喜歡排水好的沙地，否則根容易泡爛；\n• 水稻需要有黏性且保水力強的土壤來維持生長所需的大量水分；\n• 螞蟻會在隱蔽安全的地下築巢；\n• 鳥類栗喉蜂虎會在土丘崖壁上挖出深洞來保護寶寶；\n• 招潮蟹則最喜歡在海濱泥灘地覓食與挖洞躲藏。' },
-  { type: 'fill', title: '填填看：水量影響、地震應對與動物呼吸', pointsPerBlank: 2, sections: [ { subtitle: '1. 對著土堆澆水，流水水量的大小會對土堆外表有什麼影響？', options: [ { val: 'A', label: '甲. 土堆無變化' }, { val: 'B', label: '乙. 土堆凹陷了' }, { val: 'C', label: '丙. 土堆凹陷更多' } ], questions: [ { id: 'W1', q: '(1) 澆水的水量小', a: 'B' }, { id: 'W2', q: '(2) 澆水的水量大', a: 'C' } ] }, { subtitle: '2. 下列水生動物分別使用哪一種方式呼吸？', options: [ { val: '鰓', label: 'A. 鰓' }, { val: '肺', label: 'B. 肺' } ], questions: [ { id: 'F4', q: '(1) 溪蟹', a: '鰓' }, { id: 'F5', q: '(2) 澤蛙', a: '肺' }, { id: 'F6', q: '(3) 螺', a: '鰓' }, { id: 'F7', q: '(4) 蝦', a: '鰓' }, { id: 'F8', q: '(5) 斑龜', a: '肺' }, { id: 'F9', q: '(6) 蝌蚪', a: '鰓' } ] } ], explanation: '【地震應對】遇到地震千萬別慌！平時要預防(發生前固定家具)，發生當下立刻保護頭部(發生時趴下掩護)，搖晃過後要確保環境安全避免二次災害(發生後檢查管線)。\n\n【水生動物呼吸】大部分長時間生活在水中的動物(如溪蟹、螺、蝦，以及青蛙的小時候：蝌蚪)是用「鰓」來過濾水中的氧氣；但是爬蟲類(如斑龜)或是兩棲類的成體(如澤蛙)已經發展出「肺」，所以牠們需要定時浮出水面呼吸空氣喔！' },
-  { type: 'fill', title: '填填看：水生植物的生長方式', pointsPerBlank: 2, sections: [ { subtitle: '下列六種水生植物，它們的生長方式分別屬於哪一種類型？請選擇適合的代號：', options: [ { val: 'A', label: 'A. 挺水性' }, { val: 'B', label: 'B. 沉水性' }, { val: 'C', label: 'C. 浮葉性' }, { val: 'D', label: 'D. 漂浮性' } ], questions: [ { id: 'P1', q: '(1) 浮萍', a: 'D' }, { id: 'P2', q: '(2) 荷花', a: 'A' }, { id: 'P3', q: '(3) 睡蓮', a: 'C' }, { id: 'P4', q: '(4) 大萍', a: 'D' }, { id: 'P5', q: '(5) 水蘊草', a: 'B' }, { id: 'P6', q: '(6) 臺灣萍蓬草', a: 'C' } ] } ], explanation: '【水生植物分類秘訣】\n• 挺水性 (荷花)：根固定在水底泥土裡，莖和葉「挺出」水面生長。\n• 浮葉性 (睡蓮、臺灣萍蓬草)：根固定在泥土裡，但葉片是「平貼」在水面上的喔。\n• 沉水性 (水蘊草)：整株植物「沉」在水中，莖葉非常柔軟，會隨水流擺動。\n• 漂浮性 (浮萍、大萍)：根「沒有」固定在泥土裡，所以整株植物會隨水流到處「漂浮」。' },
-  { type: 'literacy', title: '素養題：看懂地震報告 (4月3日報告)', pointsPerQuestion: 2, report: { title: '中央氣象署 地震報告', number: '第113019號', date: '113年4月3日', time: '7時58分9.9秒', location: '花蓮縣政府南南東方 25.0 公里 (臺灣東部海域)', depth: '15.5 公里', magnitude: '7.2', intensities: [ '花蓮縣和平 6強', '花蓮縣花蓮市 6弱', '宜蘭縣宜蘭市 5強', '苗栗縣竹南 5強', '臺中市梨山 5弱', '彰化縣員林 5弱', '新竹縣關西 5弱', '南投縣奧萬大 5弱', '桃園市大溪 5弱', '新北市三峽 5弱', '臺北市 5弱' ] }, questions: [ { id: 'L1', q: '(1) 這次地震的深度是幾公里？', options: ['7.2', '15.5', '25.0', '5.0'], a: '15.5' }, { id: 'L2', q: '(2) 這次地震的芮氏規模是？', options: ['5.0', '6.0', '7.2', '15.5'], a: '7.2' }, { id: 'L3', q: '(3) 最靠近震央的花蓮縣和平地區，最大震度等級是？', options: ['5弱', '5強', '6弱', '6強'], a: '6強' }, { id: 'L4', q: '(4) 臺北市的最大震度等級是？', options: ['4級', '5弱', '5強', '6弱'], a: '5弱' }, { id: 'L5', q: '(5) 臺北市民此次地震的實際感受會最接近哪一個呢？', options: ['① 山崩地裂', '② 大多數人感到驚嚇難以走動，少數家具移動或翻倒', '③ 懸掛物有小搖晃', '④ 人無感覺'], a: '② 大多數人感到驚嚇難以走動，少數家具移動或翻倒' } ], explanation: '【素養題詳解】\n看懂地震報告是生活中非常重要的防災技能喔！\n1. 報告中清楚標示「深度：15.5 公里」。\n2. 報告中標示「芮氏規模：7.2」。\n3. 從各地最大震度列表中可找到「花蓮縣和平 6強」。\n4. 同樣在列表中可找到「臺北市 5弱」。\n5. 根據氣象署的震度分級，震度「5弱」的感受大約是大多數人會感到驚嚇，甚至難以走動，部分沒有固定的家具可能會移動或翻倒。' }
-];
-
-// --- 總分計算 ---
-const MAX_SCORE = QUIZ_DATA.reduce((acc, curr) => {
-    if (curr.type === 'mc' || curr.type === 'tf') return acc + curr.points;
-    if (curr.type === 'match') return acc + (curr.left.length * curr.pointsPerPair);
-    if (curr.type === 'checkbox' || curr.type === 'tf_list') return acc + (curr.options.length * curr.pointsPerOption);
-    if (curr.type === 'fill') {
-        let qCount = 0;
-        curr.sections.forEach(s => qCount += s.questions.length);
-        return acc + (qCount * curr.pointsPerBlank);
-    }
-    if (curr.type === 'literacy') return acc + (curr.questions.length * curr.pointsPerQuestion);
-    return acc;
-}, 0);
-
-// --- 全局狀態 ---
-let currentIndex = 0;
-let totalScore = 0;
-let isFinished = false;
-let state = {};
-
-// --- 工具函數 ---
-const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-
-const getTeacherExplanationHTML = (text) => `
-    <div class="mt-6 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl shadow-sm slide-in-bottom">
-        <div class="flex items-center gap-3 text-amber-700 font-bold text-xl mb-3 border-b border-amber-200 pb-2">
-            <span class="text-3xl">👩‍🏫</span> 自然老師的詳解區
-        </div>
-        <div class="space-y-3 text-amber-900 leading-relaxed text-lg whitespace-pre-wrap">${text}</div>
+    <!-- 內容區 -->
+    <div id="content-area" class="p-6 sm:p-8 min-h-[360px] flex flex-col justify-center">
+      <div class="text-center text-emerald-700 font-bold">載入中...</div>
     </div>
-`;
+  </div>
 
-const getErrorMsgHTML = (msg) => `
-    <div class="mt-4 mb-4 flex items-center justify-center text-red-500 font-bold gap-2">
-        <i data-lucide="alert-triangle" class="w-5 h-5"></i> ${msg}
-    </div>
-`;
+  <footer class="mt-8 text-emerald-700/70 font-medium text-center text-sm">
+    持續學習，探索自然科學的奧秘！ 🌿
+  </footer>
 
-// --- 初始化渲染 ---
-function renderApp() {
-    const contentArea = document.getElementById('content-area');
-    const progressContainer = document.getElementById('progress-container');
-    const progressText = document.getElementById('progress-text');
-    
-    if (isFinished) {
-        progressContainer.style.display = 'none';
-        renderResult(contentArea);
-    } else {
-        progressContainer.style.display = 'flex';
-        progressText.innerText = `${currentIndex + 1} /${QUIZ_DATA.length}`;
-        const currentData = QUIZ_DATA[currentIndex];
-        
-        state = { 
-            isSubmitted: false, 
-            selectedOption: null, 
-            selectedIds: new Set(), 
-            answers: {}, 
-            matches: {}, 
-            activeLeft: null,
-            errorMsg: ""
-        };
+  <script>
+    const QUIZ_DATA = [
+      {
+        question: '根據地表物質的顆粒大小，下列哪一個排序是正確的？',
+        options: ['礫石 > 土壤 > 沙', '沙 > 礫石 > 土壤', '礫石 > 沙 > 土壤', '土壤 > 沙 > 礫石'],
+        answer: '礫石 > 沙 > 土壤',
+        explanation: '地表物質依顆粒大小排列為：礫石(最大) > 沙 > 土壤(最細小)。礫石是很粗的石頭，沙子次之，土壤則是非常細緻的微小顆粒喔！'
+      },
+      {
+        question: '下列哪一項行為會對地表造成破壞？',
+        options: ['定期清理垃圾', '維護好山林樹木', '做好水土保持', '開挖山坡地'],
+        answer: '開挖山坡地',
+        explanation: '隨意開挖山坡地會破壞原有的植被和地形，失去植物根部的保護，只要大雨一來，就很容造成水土流失甚至山崩喔！'
+      },
+      {
+        question: '人類大量砍伐樹木，可能引發下列哪一種災害？',
+        options: ['森林大火', '土石流', '地震', '颱風'],
+        answer: '土石流',
+        explanation: '森林裡的樹木根系能夠緊緊抓住土壤，並且涵養水分。大量砍伐樹木會讓山坡地失去保護傘，遇到豪雨時就容易引發可怕的土石流。'
+      },
+      {
+        question: '進行水域環境調查時，下列哪一種做法是不正確的？',
+        options: ['望遠鏡、撈網等觀察物品', '單獨跑到水深的地方觀察', '將水生生物放回原處', '注意安全'],
+        answer: '單獨跑到水深的地方觀察',
+        explanation: '安全第一！進行任何戶外水域調查，絕對不可以單獨行動，更不可以跑到水深不明的危險區域，同行一定要有大人陪同才行！'
+      },
+      {
+        question: '海邊的沙丘在不同時間的樣貌會不一樣，主要是什麼作用造成的？',
+        options: ['雨水和風', '雨水和人類', '雨水和小動物', '人類和小動物'],
+        answer: '雨水和風',
+        explanation: '海邊的地形缺乏遮蔽物，長時間受到海風吹拂以及雨水的沖刷（搬運、堆積作用），沙丘的形狀和位置就會不斷改變。'
+      },
+      {
+        question: '下列哪一種水生動物是利用腹足爬行？',
+        options: ['蛙', '蝦', '螺', '鱉'],
+        answer: '螺',
+        explanation: '螺類或蝸牛等軟體動物，身體底部具有寬廣平坦稱為「腹足」，牠們會分泌黏液，利用腹足的肌肉收縮在物體表面滑行。'
+      },
+      {
+        question: '我們吃的稻米是屬於哪一種類型的水生植物？',
+        options: ['浮葉性', '挺水性', '沉水性', '漂浮性'],
+        answer: '挺水性',
+        explanation: '水稻的根深扎在水底的泥土裡，但它的莖和葉會挺出水面生長，這就是標準的「挺水性」水生植物特徵喔！'
+      },
+      {
+        question: '造成附近海域珊瑚白化的最主要原因是什麼？',
+        options: ['農藥滲入土壤造成海域汙染', '工廠排放熱廢水造成海水溫度升高', '河川地開發排放垃圾造成汙染'],
+        answer: '工廠排放熱廢水造成海水溫度升高',
+        explanation: '珊瑚對生長環境的溫度非常敏感。當海水溫度異常升高時，與珊瑚共生的藻類會離開，導致珊瑚失去色彩變成白色，若情況持續珊瑚就會死亡。'
+      }
+    ];
 
-        if (currentData.type === 'mc' || currentData.type === 'tf') renderMcTf(contentArea, currentData);
-        else if (currentData.type === 'checkbox') renderCheckbox(contentArea, currentData);
-        else if (currentData.type === 'tf_list') renderTfList(contentArea, currentData);
-        else if (currentData.type === 'match') renderMatch(contentArea, currentData);
-        else if (currentData.type === 'fill') renderFill(contentArea, currentData);
-        else if (currentData.type === 'literacy') renderLiteracy(contentArea, currentData);
-    }
-    
-    // 安全載入圖示，若網路擋圖示也不會讓整個頁面當掉
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
 
-// 單選 / 是非
-function renderMcTf(container, data) {
-    let optionsHtml = data.options.map((opt, idx) => {
-        let style = "border-2 bg-white text-gray-700 hover:bg-emerald-50 hover:border-emerald-300";
-        if (state.selectedOption === opt && !state.isSubmitted) {
-            style = "border-2 border-emerald-500 bg-emerald-100 text-emerald-800 shadow-md transform scale-[1.02]";
-        } else if (state.isSubmitted) {
-            if (opt === data.answer) {
-                style = "border-2 border-green-500 bg-green-100 text-green-800 shadow-md";
-            } else if (state.selectedOption === opt) {
-                style = "border-2 border-red-400 bg-red-50 text-red-700 opacity-80";
-            } else {
-                style = "border-2 border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed";
-            }
-        }
-        
-        let iconHtml = "";
-        if (state.isSubmitted) {
-            if (opt === data.answer) iconHtml = `<i data-lucide="check-circle" class="w-6 h-6 text-green-600 shrink-0 ml-2"></i>`;
-            else if (state.selectedOption === opt) iconHtml = `<i data-lucide="x-circle" class="w-6 h-6 text-red-600 shrink-0 ml-2"></i>`;
-        }
+    function renderQuestion() {
+      const container = document.getElementById('content-area');
+      const progressContainer = document.getElementById('progress-container');
+      const progressText = document.getElementById('progress-text');
 
-        return `
-            <button onclick="handleMcSelect('${idx}')" ${state.isSubmitted ? 'disabled' : ''} class="text-left p-4 rounded-xl font-medium text-lg transition-all duration-200 flex items-center justify-between ${style}">
-                <span>${opt}</span>${iconHtml}
+      if (!container) return;
+
+      if (currentIndex >= QUIZ_DATA.length) {
+        if (progressContainer) progressContainer.style.display = 'none';
+        container.innerHTML = `
+          <div class="text-center py-6 fade-in">
+            <h2 class="text-3xl font-black text-emerald-800 mb-3">🎉 恭喜完成挑戰！</h2>
+            <p class="text-lg text-gray-600 mb-6">本次得分：<span class="text-3xl font-extrabold text-emerald-600">${score}</span> / ${QUIZ_DATA.length * 10} 分</p>
+            <button onclick="restartQuiz()" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition">
+              重新測驗
             </button>
+          </div>
         `;
-    }).join('');
+        return;
+      }
 
-    container.innerHTML = `
+      if (progressContainer) progressContainer.style.display = 'block';
+      if (progressText) progressText.innerText = `${currentIndex + 1} / ${QUIZ_DATA.length}`;
+
+      const q = QUIZ_DATA[currentIndex];
+      answered = false;
+
+      const optionsHtml = q.options.map((opt) => `
+        <button onclick="checkAnswer('${opt.replace(/'/g, "\\'")}', this)" class="option-btn w-full text-left p-4 my-2 rounded-xl border-2 border-emerald-100 hover:border-emerald-500 hover:bg-emerald-50/70 transition font-medium flex items-center justify-between text-gray-800">
+          <span>${opt}</span>
+        </button>
+      `).join('');
+
+      container.innerHTML = `
         <div class="fade-in">
-            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 leading-relaxed flex items-start gap-3">
-                <span class="text-emerald-700 text-3xl font-black shrink-0">Q${currentIndex + 1}.</span>
-                <span class="mt-1">${data.question}</span>
-            </h2>
-            <div class="grid gap-4 mb-8">${optionsHtml}</div>${state.isSubmitted ? getTeacherExplanationHTML(data.explanation) : ''}
-            <div class="flex justify-end pt-6 border-t border-gray-100 mt-6">
-                ${!state.isSubmitted 
-                    ? `<button onclick="submitMcTf()" class="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transform hover:-translate-y-1 transition-all">確定答案</button>` 
-                    : `<button onclick="nextQuestion()" class="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">下一題 <i data-lucide="arrow-right" class="w-5 h-5"></i></button>`}
-            </div>
-        </div>
-    `;
-    window.handleMcSelect = (idx) => { if(!state.isSubmitted) { state.selectedOption = data.options[idx]; renderApp(); }};
-    window.submitMcTf = () => {
-        if (!state.selectedOption) return;
-        state.isSubmitted = true;
-        if (state.selectedOption === data.answer) totalScore += data.points;
-        renderApp();
-    };
-}
-
-// 多選題
-function renderCheckbox(container, data) {
-    let optionsHtml = data.options.map((opt) => {
-        const isSel = state.selectedIds.has(opt.id);
-        let style = "border-2 bg-white text-gray-700 hover:bg-teal-50 hover:border-teal-300";
-        if (isSel && !state.isSubmitted) {
-            style = "border-2 border-teal-500 bg-teal-100 text-teal-800 shadow-md transform scale-[1.01]";
-        } else if (state.isSubmitted) {
-            if (opt.isCorrect) style = isSel ? "border-2 border-green-500 bg-green-100 text-green-800 shadow-md ring-2 ring-green-400" : "border-2 border-yellow-400 bg-yellow-50 text-yellow-800 border-dashed";
-            else style = isSel ? "border-2 border-red-400 bg-red-50 text-red-700 opacity-90 ring-2 ring-red-300" : "border-2 border-gray-200 bg-gray-50 text-gray-400 opacity-60";
-        }
-
-        let boxStyle = "bg-white border-gray-300";
-        if (isSel) {
-            if (state.isSubmitted) boxStyle = opt.isCorrect ? "bg-green-500 border-green-500 text-white" : "bg-red-500 border-red-500 text-white";
-            else boxStyle = "bg-teal-500 border-teal-500 text-white";
-        }
-
-        let feedback = "";
-        if (state.isSubmitted) {
-            if (opt.isCorrect && !isSel) feedback = `<span class="text-sm font-bold text-yellow-600 bg-yellow-200 px-2 py-1 rounded-md">漏勾選了</span>`;
-            if (!opt.isCorrect && isSel) feedback = `<span class="text-sm font-bold text-red-600 bg-red-200 px-2 py-1 rounded-md">不該勾喔</span>`;
-        }
-
-        return `
-            <button onclick="toggleCheckbox('${opt.id}')" ${state.isSubmitted ? 'disabled' : ''} class="text-left p-4 rounded-xl font-medium text-lg transition-all duration-200 flex items-center gap-4 ${style}">
-                <div class="w-8 h-8 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${boxStyle}">
-                    ${isSel ? '<i data-lucide="check-circle" class="w-6 h-6"></i>' : ''}
-                </div>
-                <span class="flex-1">${opt.text}</span>${feedback ? `<div class="shrink-0 flex items-center">${feedback}</div>` : ''}
+          <div class="text-xs font-bold text-emerald-600 tracking-wider uppercase mb-1">Question ${currentIndex + 1}</div>
+          <h2 class="text-xl font-bold text-gray-800 mb-5 leading-relaxed">${q.question}</h2>
+          <div class="flex flex-col">${optionsHtml}</div>
+          <div id="explanation-box" class="hidden mt-4 p-4 rounded-xl text-sm leading-relaxed"></div>
+          <div class="mt-6 flex justify-end">
+            <button id="next-btn" onclick="nextQuestion()" class="hidden px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition">
+              下一題 →
             </button>
-        `;
-    }).join('');
-
-    container.innerHTML = `
-        <div class="fade-in">
-            <div class="flex items-center gap-3 text-2xl font-bold text-teal-800 mb-2">
-                <i data-lucide="check-square" class="w-8 h-8"></i> ${data.title}
-            </div>
-            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2 leading-relaxed flex items-start gap-3">
-                <span class="text-teal-700 text-3xl font-black shrink-0">Q${currentIndex + 1}.</span>
-                <span class="mt-1">${data.question}</span>
-            </h2>
-            <div class="mb-6 md:ml-11 inline-block bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-sm font-bold shadow-sm">
-                💡 提示：本題為多選題，請點選所有符合條件的選項。
-            </div>
-            <div class="grid gap-3 mb-8">${optionsHtml}</div>${state.isSubmitted ? getTeacherExplanationHTML(data.explanation) : ''}
-            <div class="flex justify-end pt-6 border-t border-gray-100 mt-6">
-                ${!state.isSubmitted 
-                    ? `<button onclick="submitCheckbox()" class="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-teal-600 hover:bg-teal-500 text-white transform hover:-translate-y-1 transition-all">確定答案</button>` 
-                    : `<button onclick="nextQuestion()" class="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">下一題 <i data-lucide="arrow-right" class="w-5 h-5"></i></button>`}
-            </div>
+          </div>
         </div>
-    `;
-
-    window.toggleCheckbox = (id) => {
-        if (state.isSubmitted) return;
-        if (state.selectedIds.has(id)) state.selectedIds.delete(id);
-        else state.selectedIds.add(id);
-        renderApp();
-    };
-    window.submitCheckbox = () => {
-        state.isSubmitted = true;
-        let pts = 0;
-        data.options.forEach(opt => {
-            if ((state.selectedIds.has(opt.id) && opt.isCorrect) || (!state.selectedIds.has(opt.id) && !opt.isCorrect)) {
-                pts += data.pointsPerOption;
-            }
-        });
-        totalScore += pts;
-        renderApp();
-    };
-}
-
-// 是非題群組
-function renderTfList(container, data) {
-    let reportHtml = "";
-    if (data.report) {
-        reportHtml = `
-            <div class="bg-[#fffdf7] border-4 border-gray-400 p-4 md:p-6 rounded-xl mb-8 shadow-sm text-gray-800 font-mono tracking-tight relative">
-                <h3 class="text-center font-extrabold text-xl md:text-2xl mb-4 border-b-2 border-gray-300 pb-2">${data.report.title}</h3>
-                <div class="text-sm md:text-base space-y-2 mb-4">
-                    <div><span class="font-bold">編號：</span>${data.report.number}</div>
-                    <div><span class="font-bold">時間：</span>${data.report.time}</div>
-                    <div><span class="font-bold">震央位置：</span>${data.report.epicenter}</div>
-                    <div><span class="font-bold">震源深度：</span>${data.report.depth}</div>
-                    <div><span class="font-bold">芮氏規模：</span>${data.report.magnitude}</div>
-                    <div><span class="font-bold">相對位置：</span>${data.report.relativeLocation}</div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm md:text-base border-t-2 border-gray-300 pt-4">
-                    <div>${data.report.intensitiesLeft.map(i => `<div>${i}</div>`).join('')}</div>
-                    <div>${data.report.intensitiesRight.map(i => `<div>${i}</div>`).join('')}</div>
-                </div>
-            </div>
-        `;
+      `;
     }
 
-    let listHtml = data.options.map((opt) => {
-        const sel = state.answers[opt.id];
-        const isCorrect = state.isSubmitted ? (sel === opt.answer) : null;
-        let bg = "bg-white border-indigo-100";
-        if (state.isSubmitted) bg = isCorrect ? "bg-emerald-50 border-emerald-300" : "bg-red-50 border-red-300";
+    function checkAnswer(chosen, btn) {
+      if (answered) return;
+      answered = true;
 
-        const btnClass = (type) => {
-            let base = "w-12 h-12 flex items-center justify-center rounded-lg border-2 font-black text-2xl transition-colors";
-            if (sel === type) {
-                if (state.isSubmitted) return `${base} ${isCorrect ? "bg-emerald-500 border-emerald-600 text-white" : "bg-red-500 border-red-600 text-white"}`; return `${base} bg-indigo-500 border-indigo-600 text-white shadow-md`;
-            }
-            let hover = type === 'O' ? 'hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-500' : 'hover:bg-rose-50 hover:border-rose-300 hover:text-rose-500';
-            return `${base} bg-gray-50 border-gray-300 text-gray-400${hover}`;
-        };
+      const q = QUIZ_DATA[currentIndex];
+      const isCorrect = chosen === q.answer;
+      const expBox = document.getElementById('explanation-box');
+      const nextBtn = document.getElementById('next-btn');
 
-        let resultIcon = "";
-        if (state.isSubmitted) {
-            resultIcon = isCorrect ? `<i data-lucide="award" class="w-8 h-8 text-emerald-500"></i>` : `<span class="font-bold text-red-600">答:${opt.answer==='O'?'✔':'✕'}</span>`;
-        }
+      document.querySelectorAll('.option-btn').forEach(b => b.classList.add('pointer-events-none'));
 
-        return `
-            <div class="p-4 rounded-xl border-2 transition-all flex flex-col md:flex-row md:items-center gap-4 ${bg}">
-                <div class="flex-1 text-gray-800 font-medium text-lg leading-relaxed">${opt.text}</div>
-                <div class="flex items-center gap-3 shrink-0">
-                    <button onclick="handleTfListSelect('${opt.id}', 'O')" ${state.isSubmitted ? 'disabled' : ''} class="${btnClass('O')}">✔</button>
+      if (isCorrect) {
+        score += 10;
+        btn.classList.remove('border-emerald-100');
+        btn.classList.add('bg-emerald-100', 'border-emerald-600', 'text-emerald-900', 'font-bold');
+        expBox.className = "mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 block";
+        expBox.innerHTML = `<strong>✅ 答對了！</strong><p class="mt-1">${q.explanation}</p>`;
+      } else {
+        btn.classList.remove('border-emerald-100');
+        btn.classList.add('bg-rose-100', 'border-rose-600', 'text-rose-900', 'font-bold');
+        expBox.className = "mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 block";
+        expBox.innerHTML = `<strong>❌ 答錯了！正確答案是：${q.answer}</strong><p class="mt-1">${q.explanation}</p>`;
+      }
+
+      nextBtn.classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+      renderQuestion();
+    }
+
+    function restartQuiz() {
+      currentIndex = 0;
+      score = 0;
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>
