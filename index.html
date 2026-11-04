@@ -1,0 +1,1210 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { BookOpen, CheckCircle, XCircle, Award, RefreshCw, ArrowRight, AlertTriangle, Link as LinkIcon, Edit, FileText, CheckSquare, ListChecks } from 'lucide-react';
+
+// --- Data Definitions ---
+
+const QUIZ_DATA = [
+  // --- 多選題 ---
+  {
+    type: 'mc',
+    question: '根據地表物質的顆粒大小，下列哪一個排序是正確的？',
+    options: ['① 礫石 > 土壤 > 沙', '② 沙 > 礫石 > 土壤', '③ 礫石 > 沙 > 土壤', '④ 土壤 > 沙 > 礫石'],
+    answer: '③ 礫石 > 沙 > 土壤',
+    points: 4,
+    explanation: '地表物質依顆粒大小排列為：礫石(最大) > 沙 > 土壤(最細小)。礫石是很粗的石頭，沙子次之，土壤則是非常細緻的微小顆粒喔！'
+  },
+  {
+    type: 'mc',
+    question: '下列哪一項行為會對地表造成破壞？',
+    options: ['① 定期清理垃圾', '② 維護好山林樹木', '③ 做好水土保持', '④ 開挖山坡地'],
+    answer: '④ 開挖山坡地',
+    points: 4,
+    explanation: '隨意開挖山坡地會破壞原有的植被和地形，失去植物根部的保護，只要大雨一來，就很容易造成水土流失甚至山崩喔！'
+  },
+  {
+    type: 'mc',
+    question: '人類大量砍伐樹木，可能引發下列哪一種災害？',
+    options: ['① 森林大火', '② 土石流', '③ 地震', '④ 颱風'],
+    answer: '② 土石流',
+    points: 4,
+    explanation: '森林裡的樹木根系能夠緊緊抓住土壤，並且涵養水分。大量砍伐樹木會讓山坡地失去保護傘，遇到豪雨時就容易引發可怕的土石流。'
+  },
+  {
+    type: 'mc',
+    question: '進行水域環境調查時，下列哪一種做法是不正確的？',
+    options: ['① 攜帶望遠鏡、撈網等觀察物品', '② 單獨跑到水深的地方觀察', '③ 將水生生物放回原處', '④ 注意安全'],
+    answer: '② 單獨跑到水深的地方觀察',
+    points: 4,
+    explanation: '安全第一！進行任何戶外水域調查，絕對不可以單獨行動，更不可以跑到水深不明的危險區域，一定要有師長陪同才行！'
+  },
+  {
+    type: 'mc',
+    question: '海邊的沙丘在不同時間的樣貌會不一樣，主要是什麼作用造成的？',
+    options: ['① 雨水和風', '② 雨水和人類', '③ 雨水和小動物', '④ 人類和小動物'],
+    answer: '① 雨水和風',
+    points: 4,
+    explanation: '海邊的地形缺乏遮蔽物，長時間受到強風的吹襲以及雨水的沖刷(侵蝕、搬運、堆積作用)，沙丘的形狀和位置就會不斷改變。'
+  },
+  {
+    type: 'mc',
+    question: '下列哪一種水生動物是利用腹足爬行？',
+    options: ['① 蛙', '② 蝦', '③ 螺', '④ 龜'],
+    answer: '③ 螺',
+    points: 4,
+    explanation: '螺類或蝸牛等軟體動物，身體底部有發達的肌肉構造稱為「腹足」，牠們會分泌黏液，利用腹足的肌肉收縮在物體表面滑行。'
+  },
+  {
+    type: 'mc',
+    question: '我們吃的稻米是屬於哪一種類型的水生植物？',
+    options: ['① 浮葉性', '② 挺水性', '③ 沉水性', '④ 漂浮性'],
+    answer: '② 挺水性',
+    points: 4,
+    explanation: '水稻的根是固定生長在水底泥土裡的，但它的莖和葉會挺出水面生長，這就是標準的「挺水性」水生植物特徵喔！'
+  },
+  {
+    type: 'mc',
+    question: '造成附近海域珊瑚白化的最主要原因是什麼？',
+    options: ['① 農藥滲入土壤造成海域汙染', '② 工廠排放熱廢水造成海水溫度升高', '③ 河川地開挖砂石', '④ 亂丟垃圾造成汙染'],
+    answer: '② 工廠排放熱廢水造成海水溫度升高',
+    points: 4,
+    explanation: '珊瑚對生長環境的溫度非常敏感。當海水溫度異常升高時，與珊瑚共生的藻類會離開，導致珊瑚失去色彩變成白色，若情況持續珊瑚就會死亡。'
+  },
+  
+  // --- 是非題群組 (正確打✔，錯誤打✕) ---
+  {
+    type: 'tf_list',
+    title: '是非勾選題：魚適應水中生活',
+    question: '關於魚適應水中生活的敘述，正確的請選✔，錯誤的請選✕。',
+    pointsPerOption: 2,
+    options: [
+      { id: 'F_T1', text: '① 魚的身體外形頭和尾比較粗大，中間軀幹比較細小，可以幫助魚減少在水中的阻力。', answer: 'X' },
+      { id: 'F_T2', text: '② 魚利用魚鰭的擺動來控制游動的方向。', answer: 'O' },
+      { id: 'F_T3', text: '③ 魚利用口和鰓蓋不停的一開一合，完成呼吸。', answer: 'O' }
+    ],
+    explanation: '魚的身體呈現「紡錘型」(中間粗大、頭尾尖細)才能減少阻力。牠們用口吞水並從「鰓」過濾氧氣來呼吸，並透過胸鰭、尾鰭等「魚鰭」的擺動來推進和控制方向。'
+  },
+  {
+    type: 'tf_list',
+    title: '素養題：關於地震的敘述',
+    question: '根據地震報告與所學知識，正確的請選✔，錯誤的請選✕。',
+    pointsPerOption: 2,
+    report: {
+      title: '中央氣象署地震測報中心',
+      number: '第113267號地震報告',
+      time: '113年 4月23日 2時32分49.2秒',
+      epicenter: '北緯 23.85° 東經 121.52°',
+      depth: '7.7公里',
+      magnitude: '6.2',
+      relativeLocation: '花蓮縣政府西南方18.8公里 (位於花蓮縣壽豐鄉)',
+      intensitiesLeft: ['花蓮縣地區最大震度5弱', '臺中市地區最大震度4級', '宜蘭縣地區最大震度4級', '南投縣地區最大震度4級'],
+      intensitiesRight: ['苗栗縣地區最大震度3級', '新竹縣地區最大震度3級', '屏東縣地區最大震度2級', '澎湖縣地區最大震度1級']
+    },
+    options: [
+      { id: 'EQ_T1', text: '① 中央健保署網站可尋找地震相關報告。', answer: 'X' },
+      { id: 'EQ_T2', text: '② 震央是引發地震的位置。', answer: 'X' },
+      { id: 'EQ_T3', text: '③ 第113267號地震芮氏規模是6.2。', answer: 'O' },
+      { id: 'EQ_T4', text: '④ 第113267號地震，臺灣各地測得的芮氏規模都是一樣。', answer: 'O' },
+      { id: 'EQ_T5', text: '⑤ 第113267號地震，花蓮縣地區居民感受到的搖晃程度，會比苗栗縣地區強烈。', answer: 'O' },
+      { id: 'EQ_T6', text: '⑥ 越靠近震央的地區，人體感受到地面搖晃震度會越大。', answer: 'O' },
+      { id: 'EQ_T7', text: '⑦ 地震會形成堰塞湖、山坡地崩塌。', answer: 'O' },
+      { id: 'EQ_T8', text: '⑧ 避難救生包內要準備新鮮的水果。', answer: 'X' }
+    ],
+    explanation: '找地震資料要到「中央氣象署」；地底下發生錯動的地方叫「震源」，地表對應的位置才是「震央」。每次地震的「規模(釋放的能量)」只有一個，但「震度(搖晃程度)」會因為距離震央的遠近而有所不同喔！'
+  },
+
+  {
+    type: 'tf',
+    question: '地表上除了生物之外，還有非生物，例如：空氣、水、岩石。',
+    options: ['O', 'X'],
+    answer: 'O',
+    points: 4,
+    explanation: '地球環境是由各種生物與非生物共同組成的。空氣、水、土壤、岩石、陽光等，都是維持自然界運作與生命生存不可或缺的非生物因子。'
+  },
+  {
+    type: 'tf',
+    question: '臺灣位於板塊交界處，當板塊互相擠壓時會造成地層移動產生震動，這是臺灣地震頻繁的主因。',
+    options: ['O', 'X'],
+    answer: 'O',
+    points: 4,
+    explanation: '非常正確！臺灣正好位在「菲律賓海板塊」和「歐亞大陸板塊」的交界帶(環太平洋地震帶)上，板塊持續的擠壓活動造就了臺灣，也帶來了頻繁的地震。'
+  },
+  {
+    type: 'tf',
+    question: '布袋蓮葉柄具有儲存空氣的構造，因此可以漂浮在水面上，以適應陸域環境。',
+    options: ['O', 'X'],
+    answer: 'X',
+    points: 4,
+    explanation: '前半段敘述是對的，布袋蓮膨大的葉柄裡有氣室可以儲存空氣幫助漂浮，但這是為了適應「水域」環境(漂浮性水生植物)，而不是陸域環境喔！'
+  },
+  {
+    type: 'mc',
+    question: '為了給魚一條回家的路，人類以生態工程建造「魚梯」，下列哪一項不正確？',
+    options: ['① 讓魚回到上游繁殖', '② 為了讓環境與生態之間取得平衡', '③ 維護生物生存的權利', '④ 讓人類方便行走'],
+    answer: '④ 讓人類方便行走',
+    points: 4,
+    explanation: '「魚梯」是專門設計給迴游性魚類(例如櫻花鉤吻鮭)克服攔沙壩帶來的水位落差，幫助牠們順利游回上游產卵的生態通道，不是給人類行走的喔！'
+  },
+  
+  // --- 多選題群組 (Multi-select) ---
+  {
+    type: 'checkbox',
+    title: '多選題：水域環境紀錄項目',
+    question: '探索水域環境時，紀錄表中須包含哪些項目？',
+    pointsPerOption: 2,
+    options: [
+      { id: 'W1', text: '(1) 水域類型', isCorrect: true },
+      { id: 'W2', text: '(2) 水質情況', isCorrect: true },
+      { id: 'W3', text: '(3) 月亮方位', isCorrect: false },
+      { id: 'W4', text: '(4) 水流速度', isCorrect: true },
+      { id: 'W5', text: '(5) 水中生物', isCorrect: true }
+    ],
+    explanation: '進行水域環境調查時，我們需要記錄水域的基本狀態（如：類型、水質、水流速度），以及觀察到的「水中生物」。至於「月亮方位」跟水域生態調查沒有直接關係，不需要特別記錄喔！'
+  },
+  {
+    type: 'checkbox',
+    title: '多選題：沉水性水生植物',
+    question: '關於【沉水性】水生植物的特徵，下列敘述哪些是正確的？',
+    pointsPerOption: 2,
+    options: [
+      { id: 'C1', text: '(1) 根生長在水底的泥土裡', isCorrect: true },
+      { id: 'C2', text: '(2) 莖、葉柔軟且沉在水中，會隨水位高低伸展彎曲。', isCorrect: true },
+      { id: 'C3', text: '(3) 水位較高時，莖、葉會伸展直立', isCorrect: false },
+      { id: 'C4', text: '(4) 莖、葉在水中固定不動', isCorrect: false }
+    ],
+    explanation: '【沉水性植物】(例如：水蘊草)的根通常固定在水底泥土中，整株植物都沉在水面下。它們的莖葉非常柔軟，不能直立，而是會隨著水流或水位的變化而彎曲漂動喔！'
+  },
+  {
+    type: 'checkbox',
+    title: '多選題：保護森林的好處',
+    question: '保護森林有哪些好處？',
+    pointsPerOption: 1,
+    options: [
+      { id: 'F1', text: '(1) 淨化空氣', isCorrect: true },
+      { id: 'F2', text: '(2) 減少氧氣含量', isCorrect: false },
+      { id: 'F3', text: '(3) 提供動物棲息地', isCorrect: true },
+      { id: 'F4', text: '(4) 水土不易流失', isCorrect: true },
+      { id: 'F5', text: '(5) 增加適合人類居住的面積', isCorrect: false }
+    ],
+    explanation: '森林被稱為「地球之肺」，植物行光合作用可以吸收二氧化碳、釋放氧氣來【淨化空氣】。發達的根系能抓住土壤，讓【水土不易流失】。茂密的森林更是無數野生動物溫暖的【棲息地】。'
+  },
+  {
+    type: 'checkbox',
+    title: '多選題：保護地表環境',
+    question: '人類該如何保護地表環境、讓生物生存呢？',
+    pointsPerOption: 1,
+    options: [
+      { id: 'E1', text: '(1) 減少排放汙水', isCorrect: true },
+      { id: 'E2', text: '(2) 避免砍伐森林', isCorrect: true },
+      { id: 'E3', text: '(3) 在山坡地種菜', isCorrect: false },
+      { id: 'E4', text: '(4) 整治河川', isCorrect: true }
+    ],
+    explanation: '愛護地球要從源頭做起！減少汙染(不亂排廢水)、保護自然棲地(不亂砍樹、用心整治受傷的河川)都是好方法。在陡峭的山坡地種菜會破壞植被，容易引起土石流，這是不對的喔！'
+  },
+  {
+    type: 'checkbox',
+    title: '多選題：防震準備',
+    question: '下列防震準備的內容，哪些是正確的呢？',
+    pointsPerOption: 1,
+    options: [
+      { id: 'EQ1', text: '(1) 地震發生時要立即把櫥櫃釘牢', isCorrect: false },
+      { id: 'EQ2', text: '(2) 地震發生時要搭電梯不走樓梯', isCorrect: false },
+      { id: 'EQ3', text: '(3) 平時要熟悉逃生路線圖', isCorrect: true },
+      { id: 'EQ4', text: '(4) 平時要進行防震演練', isCorrect: true },
+      { id: 'EQ5', text: '(5) 地震發生後要檢查房屋有無龜裂', isCorrect: true },
+      { id: 'EQ6', text: '(6) 地震發生時要準備避難救生包', isCorrect: false },
+      { id: 'EQ7', text: '(7) 地震發生時要注意掉落物', isCorrect: true },
+      { id: 'EQ8', text: '(8) 地震發生後要檢查瓦斯設備有無毀損，確認安全後再使用', isCorrect: true }
+    ],
+    explanation: '防震準備必須在「平時」就做好(如：固定家具、準備救生包、演練)。地震「發生時」絕對不能搭電梯，要立刻就地掩蔽並注意掉落物。「發生後」則務必檢查房屋與管線，確保環境安全。'
+  },
+  
+  // --- 連連看 (Match the Following) ---
+  {
+    type: 'match',
+    title: '連連看：生物與適合生存的地表環境',
+    pointsPerPair: 2, 
+    left: [
+      { id: 'L1', text: '1. 西瓜' },
+      { id: 'L2', text: '2. 水稻' },
+      { id: 'L3', text: '3. 螞蟻' },
+      { id: 'L4', text: '4. 栗喉蜂虎' },
+      { id: 'L5', text: '5. 招潮蟹' },
+    ],
+    right: [
+      { id: 'R1', text: 'A. 有黏性的溼潤土壤' },
+      { id: 'R2', text: 'B. 鬆散且排水性好的土壤' },
+      { id: 'R3', text: 'C. 土壤裡的地下洞穴' },
+      { id: 'R4', text: 'D. 鬆軟的海濱泥灘地' },
+      { id: 'R5', text: 'E. 陡峭的土丘' },
+    ],
+    answers: {
+      'L1': 'R2', // 西瓜 - B
+      'L2': 'R1', // 水稻 - A
+      'L3': 'R3', // 螞蟻 - C
+      'L4': 'R5', // 栗喉蜂虎 - E
+      'L5': 'R4', // 招潮蟹 - D
+    },
+    explanation: '每一種生物都有適應環境的特別本領喔！\n• 西瓜喜歡排水好的沙地，否則根容易泡爛；\n• 水稻需要有黏性且保水力強的土壤來維持生長所需的大量水分；\n• 螞蟻會在隱蔽安全的地下築巢；\n• 鳥類栗喉蜂虎會在土丘崖壁上挖出深洞來保護寶寶；\n• 招潮蟹則最喜歡在海濱泥灘地覓食與挖洞躲藏。'
+  },
+
+  // --- 填填看 (Fill in the Blanks) ---
+  {
+    type: 'fill',
+    title: '填填看：水量影響、地震應對與動物呼吸',
+    pointsPerBlank: 2,
+    sections: [
+      {
+        subtitle: '1. 對著土堆澆水，流水水量的大小會對土堆外表有什麼影響？',
+        options: [
+          { val: 'A', label: '甲. 土堆無變化' },
+          { val: 'B', label: '乙. 土堆凹陷了' },
+          { val: 'C', label: '丙. 土堆凹陷更多' }
+        ],
+        questions: [
+          { id: 'W1', q: '(1) 澆水的水量小', a: 'B' },
+          { id: 'W2', q: '(2) 澆水的水量大', a: 'C' }
+        ]
+      },
+      {
+        subtitle: '2. 下列水生動物分別使用哪一種方式呼吸？',
+        options: [
+          { val: '鰓', label: 'A. 鰓' },
+          { val: '肺', label: 'B. 肺' }
+        ],
+        questions: [
+          { id: 'F4', q: '(1) 溪蟹', a: '鰓' },
+          { id: 'F5', q: '(2) 澤蛙', a: '肺' },
+          { id: 'F6', q: '(3) 螺', a: '鰓' },
+          { id: 'F7', q: '(4) 蝦', a: '鰓' },
+          { id: 'F8', q: '(5) 斑龜', a: '肺' },
+          { id: 'F9', q: '(6) 蝌蚪', a: '鰓' }
+        ]
+      }
+    ],
+    explanation: '【地震應對】遇到地震千萬別慌！平時要預防(發生前固定家具)，發生當下立刻保護頭部(發生時趴下掩護)，搖晃過後要確保環境安全避免二次災害(發生後檢查管線)。\n\n【水生動物呼吸】大部分長時間生活在水中的動物(如溪蟹、螺、蝦，以及青蛙的小時候：蝌蚪)是用「鰓」來過濾水中的氧氣；但是爬蟲類(如斑龜)或是兩棲類的成體(如澤蛙)已經發展出「肺」，所以牠們需要定時浮出水面呼吸空氣喔！'
+  },
+
+  // --- Fill in the Blanks (水生植物類型) ---
+  {
+    type: 'fill',
+    title: '填填看：水生植物的生長方式',
+    pointsPerBlank: 2, 
+    sections: [
+      {
+        subtitle: '下列六種水生植物，它們的生長方式分別屬於哪一種類型？請選擇適合的代號：',
+        options: [
+          { val: 'A', label: 'A. 挺水性' },
+          { val: 'B', label: 'B. 沉水性' },
+          { val: 'C', label: 'C. 浮葉性' },
+          { val: 'D', label: 'D. 漂浮性' }
+        ],
+        questions: [
+          { id: 'P1', q: '(1) 浮萍', a: 'D' },
+          { id: 'P2', q: '(2) 荷花', a: 'A' },
+          { id: 'P3', q: '(3) 睡蓮', a: 'C' },
+          { id: 'P4', q: '(4) 大萍', a: 'D' },
+          { id: 'P5', q: '(5) 水蘊草', a: 'B' },
+          { id: 'P6', q: '(6) 臺灣萍蓬草', a: 'C' }
+        ]
+      }
+    ],
+    explanation: '【水生植物分類秘訣】\n• 挺水性 (荷花)：根固定在水底泥土裡，莖和葉「挺出」水面生長。\n• 浮葉性 (睡蓮、臺灣萍蓬草)：根固定在泥土裡，但葉片是「平貼」在水面上的喔。\n• 沉水性 (水蘊草)：整株植物「沉」在水中，莖葉非常柔軟，會隨水流擺動。\n• 漂浮性 (浮萍、大萍)：根「沒有」固定在泥土裡，所以整株植物會隨水流到處「漂浮」。'
+  },
+
+  // --- Literacy Question (素養題) ---
+  {
+    type: 'literacy',
+    title: '素養題：看懂地震報告 (4月3日報告)',
+    pointsPerQuestion: 2, 
+    report: {
+      title: '中央氣象署 地震報告',
+      number: '第113019號',
+      date: '113年4月3日',
+      time: '7時58分9.9秒',
+      location: '花蓮縣政府南南東方 25.0 公里 (臺灣東部海域)',
+      depth: '15.5 公里',
+      magnitude: '7.2',
+      intensities: [
+        '花蓮縣和平 6強', '花蓮縣花蓮市 6弱', '宜蘭縣宜蘭市 5強', '苗栗縣竹南 5強',
+        '臺中市梨山 5弱', '彰化縣員林 5弱', '新竹縣關西 5弱', '南投縣奧萬大 5弱',
+        '桃園市大溪 5弱', '新北市三峽 5弱', '臺北市 5弱'
+      ]
+    },
+    questions: [
+      { id: 'L1', q: '(1) 這次地震的深度是幾公里？', options: ['7.2', '15.5', '25.0', '5.0'], a: '15.5' },
+      { id: 'L2', q: '(2) 這次地震的芮氏規模是？', options: ['5.0', '6.0', '7.2', '15.5'], a: '7.2' },
+      { id: 'L3', q: '(3) 最靠近震央的花蓮縣和平地區，最大震度等級是？', options: ['5弱', '5強', '6弱', '6強'], a: '6強' },
+      { id: 'L4', q: '(4) 臺北市的最大震度等級是？', options: ['4級', '5弱', '5強', '6弱'], a: '5弱' },
+      { id: 'L5', q: '(5) 臺北市民此次地震的實際感受會最接近哪一個呢？', options: ['① 山崩地裂', '② 大多數人感到驚嚇難以走動，少數家具移動或翻倒', '③ 懸掛物有小搖晃', '④ 人無感覺'], a: '② 大多數人感到驚嚇難以走動，少數家具移動或翻倒' }
+    ],
+    explanation: '【素養題詳解】\n看懂地震報告是生活中非常重要的防災技能喔！\n1. 報告中清楚標示「深度：15.5 公里」。\n2. 報告中標示「芮氏規模：7.2」。\n3. 從各地最大震度列表中可找到「花蓮縣和平 6強」。\n4. 同樣在列表中可找到「臺北市 5弱」。\n5. 根據氣象署的震度分級，震度「5弱」的感受大約是大多數人會感到驚嚇，甚至難以走動，部分沒有固定的家具可能會移動或翻倒。'
+  }
+];
+
+// --- Calculate Maximum Possible Score dynamically ---
+const MAX_SCORE = QUIZ_DATA.reduce((acc, curr) => {
+  if (curr.type === 'mc' || curr.type === 'tf') return acc + curr.points;
+  if (curr.type === 'match') return acc + (curr.left.length * curr.pointsPerPair);
+  if (curr.type === 'checkbox' || curr.type === 'tf_list') return acc + (curr.options.length * curr.pointsPerOption);
+  if (curr.type === 'fill') {
+    let qCount = 0;
+    curr.sections.forEach(s => qCount += s.questions.length);
+    return acc + (qCount * curr.pointsPerBlank);
+  }
+  if (curr.type === 'literacy') return acc + (curr.questions.length * curr.pointsPerQuestion);
+  return acc;
+}, 0);
+
+// --- Components ---
+
+const TeacherExplanation = ({ text }) => (
+  <div className="mt-6 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl shadow-sm animate-in slide-in-from-bottom-2">
+    <div className="flex items-center gap-3 text-amber-700 font-bold text-xl mb-3 border-b border-amber-200 pb-2">
+      <span className="text-3xl">👩‍🏫</span>
+      自然老師的詳解區
+    </div>
+    <div className="space-y-3 text-amber-900 leading-relaxed text-lg whitespace-pre-wrap">
+      {text}
+    </div>
+  </div>
+);
+
+function McTfQuestion({ data, questionIndex, onNext, addScore }) {
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const isCorrect = selectedOption === data.answer;
+
+  const handleSubmit = () => {
+    if (selectedOption === null) return;
+    setIsSubmitted(true);
+    if (selectedOption === data.answer) {
+      addScore(data.points);
+    }
+  };
+
+  return (
+    <div className="animate-in fade-in zoom-in-95 duration-300">
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 leading-relaxed flex items-start gap-3">
+        <span className="text-emerald-700 text-3xl font-black shrink-0">Q{questionIndex + 1}.</span>
+        <span className="mt-1">{data.question}</span>
+      </h2>
+
+      <div className="grid gap-4 mb-8">
+        {data.options.map((option, idx) => {
+          let buttonStyle = "border-2 bg-white text-gray-700 hover:bg-emerald-50 hover:border-emerald-300";
+          if (selectedOption === option) {
+            buttonStyle = "border-2 border-emerald-500 bg-emerald-100 text-emerald-800 shadow-md transform scale-[1.02]";
+          }
+          if (isSubmitted) {
+            if (option === data.answer) {
+              buttonStyle = "border-2 border-green-500 bg-green-100 text-green-800 shadow-md";
+            } else if (selectedOption === option && !isCorrect) {
+              buttonStyle = "border-2 border-red-400 bg-red-50 text-red-700 opacity-80";
+            } else {
+              buttonStyle = "border-2 border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed";
+            }
+          }
+
+          return (
+            <button
+              key={idx}
+              onClick={() => !isSubmitted && setSelectedOption(option)}
+              disabled={isSubmitted}
+              className={`text-left p-4 rounded-xl font-medium text-lg transition-all duration-200 flex items-center justify-between ${buttonStyle}`}
+            >
+              <span>{option}</span>
+              {isSubmitted && option === data.answer && <CheckCircle className="w-6 h-6 text-green-600 shrink-0 ml-2" />}
+              {isSubmitted && selectedOption === option && !isCorrect && <XCircle className="w-6 h-6 text-red-600 shrink-0 ml-2" />}
+            </button>
+          );
+        })}
+      </div>
+
+      {isSubmitted && <TeacherExplanation text={data.explanation} />}
+
+      <div className="flex justify-end pt-6 border-t border-gray-100">
+        {!isSubmitted ? (
+          <button onClick={handleSubmit} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transform hover:-translate-y-1 transition-all">
+            確定答案
+          </button>
+        ) : (
+          <button onClick={onNext} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            下一題 <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CheckboxQuestion({ data, questionIndex, onNext, addScore }) {
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const toggleOption = (id) => {
+    if (isSubmitted) return;
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitted(true);
+    let pts = 0;
+    data.options.forEach(opt => {
+      if ((selectedIds.has(opt.id) && opt.isCorrect) || (!selectedIds.has(opt.id) && !opt.isCorrect)) {
+        pts += data.pointsPerOption;
+      }
+    });
+    addScore(pts);
+  };
+
+  return (
+    <div className="animate-in fade-in zoom-in-95 duration-300">
+      <div className="flex items-center gap-3 text-2xl font-bold text-teal-800 mb-2">
+        <CheckSquare className="w-8 h-8" /> {data.title}
+      </div>
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2 leading-relaxed flex items-start gap-3">
+        <span className="text-teal-700 text-3xl font-black shrink-0">Q{questionIndex + 1}.</span>
+        <span className="mt-1">{data.question}</span>
+      </h2>
+      <div className="mb-6 md:ml-11 inline-block bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-sm font-bold shadow-sm">
+        💡 提示：本題為多選題，請點選所有符合條件的選項。
+      </div>
+
+      <div className="grid gap-3 mb-8">
+        {data.options.map((opt) => {
+          const isSelected = selectedIds.has(opt.id);
+          let buttonStyle = "border-2 bg-white text-gray-700 hover:bg-teal-50 hover:border-teal-300";
+          
+          if (isSelected && !isSubmitted) {
+            buttonStyle = "border-2 border-teal-500 bg-teal-100 text-teal-800 shadow-md transform scale-[1.01]";
+          }
+          
+          if (isSubmitted) {
+            if (opt.isCorrect) {
+              buttonStyle = isSelected 
+                ? "border-2 border-green-500 bg-green-100 text-green-800 shadow-md ring-2 ring-green-400" 
+                : "border-2 border-yellow-400 bg-yellow-50 text-yellow-800 border-dashed"; 
+            } else {
+              buttonStyle = isSelected 
+                ? "border-2 border-red-400 bg-red-50 text-red-700 opacity-90 ring-2 ring-red-300" 
+                : "border-2 border-gray-200 bg-gray-50 text-gray-400 opacity-60"; 
+            }
+          }
+
+          return (
+            <button
+              key={opt.id}
+              onClick={() => toggleOption(opt.id)}
+              disabled={isSubmitted}
+              className={`text-left p-4 rounded-xl font-medium text-lg transition-all duration-200 flex items-center gap-4 ${buttonStyle}`}
+            >
+              <div className={`w-8 h-8 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                isSelected 
+                  ? isSubmitted 
+                    ? (opt.isCorrect ? "bg-green-500 border-green-500 text-white" : "bg-red-500 border-red-500 text-white")
+                    : "bg-teal-500 border-teal-500 text-white"
+                  : "bg-white border-gray-300"
+              }`}>
+                {isSelected && <CheckCircle className="w-6 h-6" />}
+              </div>
+              <span className="flex-1">{opt.text}</span>
+              
+              {isSubmitted && (
+                <div className="shrink-0 flex items-center">
+                   {opt.isCorrect && !isSelected && <span className="text-sm font-bold text-yellow-600 bg-yellow-200 px-2 py-1 rounded-md">漏勾選了</span>}
+                   {!opt.isCorrect && isSelected && <span className="text-sm font-bold text-red-600 bg-red-200 px-2 py-1 rounded-md">不該勾喔</span>}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {isSubmitted && <TeacherExplanation text={data.explanation} />}
+
+      <div className="flex justify-end pt-6 border-t border-gray-100">
+        {!isSubmitted ? (
+          <button onClick={handleSubmit} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-teal-600 hover:bg-teal-500 text-white transform hover:-translate-y-1 transition-all">
+            確定答案
+          </button>
+        ) : (
+          <button onClick={onNext} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            下一題 <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TrueFalseListQuestion({ data, questionIndex, onNext, addScore }) {
+  const [answers, setAnswers] = useState({}); 
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSelect = (id, choice) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [id]: choice }));
+    setErrorMsg("");
+  };
+
+  const handleSubmit = () => {
+    if (Object.keys(answers).length < data.options.length) {
+      setErrorMsg("請將每一小題都標記完成喔！");
+      return;
+    }
+    setIsSubmitted(true);
+    let pts = 0;
+    data.options.forEach(opt => {
+      if (answers[opt.id] === opt.answer) pts += data.pointsPerOption;
+    });
+    addScore(pts);
+  };
+
+  return (
+    <div className="animate-in fade-in zoom-in-95 duration-300">
+      <div className="flex items-center gap-3 text-2xl font-bold text-indigo-800 mb-2">
+        <ListChecks className="w-8 h-8" /> {data.title}
+      </div>
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 leading-relaxed flex items-start gap-3">
+        <span className="text-indigo-700 text-3xl font-black shrink-0">Q{questionIndex + 1}.</span>
+        <span className="mt-1">{data.question}</span>
+      </h2>
+
+      {data.report && (
+        <div className="bg-[#fffdf7] border-4 border-gray-400 p-4 md:p-6 rounded-xl mb-8 shadow-sm text-gray-800 font-mono tracking-tight relative">
+           <h3 className="text-center font-extrabold text-xl md:text-2xl mb-4 border-b-2 border-gray-300 pb-2">{data.report.title}</h3>
+           <div className="text-sm md:text-base space-y-2 mb-4">
+              <div><span className="font-bold">編號：</span>{data.report.number}</div>
+              <div><span className="font-bold">時間：</span>{data.report.time}</div>
+              <div><span className="font-bold">震央位置：</span>{data.report.epicenter}</div>
+              <div><span className="font-bold">震源深度：</span>{data.report.depth}</div>
+              <div><span className="font-bold">芮氏規模：</span>{data.report.magnitude}</div>
+              <div><span className="font-bold">相對位置：</span>{data.report.relativeLocation}</div>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm md:text-base border-t-2 border-gray-300 pt-4">
+              <div>{data.report.intensitiesLeft.map((item, idx) => <div key={idx}>{item}</div>)}</div>
+              <div>{data.report.intensitiesRight.map((item, idx) => <div key={idx}>{item}</div>)}</div>
+           </div>
+        </div>
+      )}
+
+      <div className="space-y-4 mb-8">
+        {data.options.map((opt) => {
+          const selected = answers[opt.id];
+          const isCorrect = isSubmitted ? selected === opt.answer : null;
+          
+          return (
+            <div key={opt.id} className={`p-4 rounded-xl border-2 transition-all flex flex-col md:flex-row md:items-center gap-4 ${
+              isSubmitted 
+                ? isCorrect ? "bg-emerald-50 border-emerald-300" : "bg-red-50 border-red-300"
+                : "bg-white border-indigo-100"
+            }`}>
+              <div className="flex-1 text-gray-800 font-medium text-lg leading-relaxed">{opt.text}</div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => handleSelect(opt.id, 'O')}
+                  disabled={isSubmitted}
+                  className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-black text-2xl transition-colors ${
+                    selected === 'O' 
+                      ? isSubmitted ? (isCorrect ? "bg-emerald-500 border-emerald-600 text-white" : "bg-red-500 border-red-600 text-white") : "bg-indigo-500 border-indigo-600 text-white shadow-md"
+                      : "bg-gray-50 border-gray-300 text-gray-400 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-500"
+                  }`}
+                >
+                  ✔
+                </button>
+                <button
+                  onClick={() => handleSelect(opt.id, 'X')}
+                  disabled={isSubmitted}
+                  className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-black text-2xl transition-colors ${
+                    selected === 'X' 
+                      ? isSubmitted ? (isCorrect ? "bg-emerald-500 border-emerald-600 text-white" : "bg-red-500 border-red-600 text-white") : "bg-indigo-500 border-indigo-600 text-white shadow-md"
+                      : "bg-gray-50 border-gray-300 text-gray-400 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-500"
+                  }`}
+                >
+                  ✕
+                </button>
+                {isSubmitted && (
+                  <div className="w-8 ml-2">
+                    {isCorrect ? <Award className="w-8 h-8 text-emerald-500" /> : <span className="font-bold text-red-600">答:{opt.answer==='O'?'✔':'✕'}</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {errorMsg && (
+        <div className="mb-4 flex items-center justify-center text-red-500 font-bold gap-2">
+          <AlertTriangle className="w-5 h-5" /> {errorMsg}
+        </div>
+      )}
+
+      {isSubmitted && <TeacherExplanation text={data.explanation} />}
+
+      <div className="flex justify-end pt-6 border-t border-gray-100">
+        {!isSubmitted ? (
+          <button onClick={handleSubmit} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-indigo-600 hover:bg-indigo-500 text-white transform hover:-translate-y-1 transition-all">
+            確定答案
+          </button>
+        ) : (
+          <button onClick={onNext} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            下一題 <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MatchQuestion({ data, questionIndex, onNext, addScore }) {
+  const [matches, setMatches] = useState({});
+  const [activeLeft, setActiveLeft] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  
+  const containerRef = useRef(null);
+  const leftRefs = useRef({});
+  const rightRefs = useRef({});
+  const [lines, setLines] = useState([]);
+
+  const handleLeftClick = (id) => {
+    if (isSubmitted) return;
+    setActiveLeft(id === activeLeft ? null : id);
+  };
+
+  const handleRightClick = (id) => {
+    if (isSubmitted) return;
+    if (activeLeft) {
+      setMatches(prev => ({ ...prev, [activeLeft]: id }));
+      setActiveLeft(null);
+      setErrorMsg("");
+    }
+  };
+
+  const removeMatch = (leftId) => {
+    if (isSubmitted) return;
+    setMatches(prev => {
+      const newM = { ...prev };
+      delete newM[leftId];
+      return newM;
+    });
+  };
+
+  const updateLines = useCallback(() => {
+    try {
+      if (!containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newLines = Object.entries(matches).map(([leftId, rightId]) => {
+        const leftEl = leftRefs.current[leftId];
+        const rightEl = rightRefs.current[rightId];
+        if (leftEl && rightEl) {
+          const leftRect = leftEl.getBoundingClientRect();
+          const rightRect = rightEl.getBoundingClientRect();
+          return {
+            id: `${leftId}-${rightId}`,
+            x1: leftRect.right - containerRect.left,
+            y1: leftRect.top + leftRect.height / 2 - containerRect.top,
+            x2: rightRect.left - containerRect.left,
+            y2: rightRect.top + rightRect.height / 2 - containerRect.top,
+            isCorrect: isSubmitted ? data.answers[leftId] === rightId : null,
+          };
+        }
+        return null;
+      }).filter(Boolean);
+      setLines(newLines);
+    } catch (e) {
+      console.warn("Line drawing error:", e);
+    }
+  }, [matches, isSubmitted, data.answers]);
+
+  useEffect(() => {
+    updateLines();
+    window.addEventListener('resize', updateLines);
+    const timer = setTimeout(updateLines, 100);
+    return () => {
+      window.removeEventListener('resize', updateLines);
+      clearTimeout(timer);
+    }
+  }, [updateLines, matches]);
+
+  const handleSubmit = () => {
+    if (Object.keys(matches).length < data.left.length) {
+      setErrorMsg("請將所有選項配對完成後再送出喔！");
+      return;
+    }
+    setErrorMsg("");
+    setIsSubmitted(true);
+    let pts = 0;
+    for (const [left, right] of Object.entries(matches)) {
+      if (data.answers[left] === right) pts += data.pointsPerPair;
+    }
+    addScore(pts);
+  };
+
+  return (
+    <div className="animate-in fade-in duration-300">
+      <div className="flex items-center gap-3 text-2xl font-bold text-emerald-800 mb-2">
+        <LinkIcon className="w-8 h-8" /> 題型二：{data.title}
+      </div>
+      <p className="text-gray-600 font-medium mb-6">點擊左邊的項目，再點擊右邊對應的項目進行配對。</p>
+
+      <div className="relative p-2 md:p-6 bg-emerald-50 rounded-2xl border-2 border-emerald-100 overflow-hidden">
+        <div ref={containerRef} className="flex justify-between items-stretch relative min-h-[300px]">
+          
+          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
+            {lines.map(line => (
+              <line 
+                key={line.id} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} 
+                stroke={line.isCorrect === true ? "#10b981" : line.isCorrect === false ? "#ef4444" : "#94a3b8"} 
+                strokeWidth="4" 
+                strokeDasharray={isSubmitted ? "0" : "6,6"}
+                className="transition-all duration-300"
+              />
+            ))}
+          </svg>
+
+          <div className="flex flex-col gap-4 w-[45%] z-20">
+            {data.left.map((item) => {
+              const isMatched = !!matches[item.id];
+              const isActive = activeLeft === item.id;
+              let bg = "bg-white border-gray-300 hover:border-emerald-400";
+              if (isActive) bg = "bg-emerald-100 border-emerald-500 shadow-md scale-105";
+              if (isMatched && !isSubmitted) bg = "bg-blue-50 border-blue-400";
+              
+              if (isSubmitted) {
+                const isCorrect = data.answers[item.id] === matches[item.id];
+                bg = isCorrect ? "bg-emerald-50 border-emerald-500" : "bg-red-50 border-red-500";
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  ref={el => leftRefs.current[item.id] = el}
+                  onClick={() => isMatched ? removeMatch(item.id) : handleLeftClick(item.id)}
+                  className={`relative p-3 md:p-4 border-2 rounded-xl text-left font-bold transition-all duration-200 ${bg}`}
+                >
+                  {item.text}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col gap-4 w-[45%] z-20">
+            {data.right.map((item) => {
+              const isTargeted = Object.values(matches).includes(item.id);
+              let bg = "bg-white border-gray-300 hover:border-emerald-400";
+              if (activeLeft) bg += " cursor-pointer animate-pulse border-emerald-300";
+              if (isTargeted) bg = "bg-blue-50 border-blue-400 opacity-80 cursor-not-allowed";
+              if (isSubmitted) bg = "bg-gray-50 border-gray-300 cursor-default";
+
+              return (
+                <div
+                  key={item.id}
+                  ref={el => rightRefs.current[item.id] = el}
+                  onClick={() => !isTargeted && handleRightClick(item.id)}
+                  className={`p-3 md:p-4 border-2 rounded-xl text-left font-medium transition-all duration-200 flex items-center ${bg}`}
+                >
+                  {item.text}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {errorMsg && (
+        <div className="mt-4 flex items-center justify-center text-red-500 font-bold gap-2">
+          <AlertTriangle className="w-5 h-5" /> {errorMsg}
+        </div>
+      )}
+
+      {isSubmitted && <TeacherExplanation text={data.explanation} />}
+
+      <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+        {!isSubmitted ? (
+          <button onClick={handleSubmit} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transform hover:-translate-y-1 transition-all">
+            確定答案
+          </button>
+        ) : (
+          <button onClick={onNext} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            下一題 <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FillQuestion({ data, questionIndex, onNext, addScore }) {
+  const [answers, setAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (qId, val) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qId]: val }));
+  };
+
+  const handleSubmit = () => {
+    let totalQuestions = 0;
+    data.sections.forEach(sec => totalQuestions += sec.questions.length);
+    if (Object.keys(answers).length < totalQuestions || Object.values(answers).some(v => !v)) {
+      setErrorMsg("請將所有空格填寫完畢後再送出喔！");
+      return;
+    }
+    setErrorMsg("");
+    setIsSubmitted(true);
+    let pts = 0;
+    data.sections.forEach(sec => {
+      sec.questions.forEach(q => {
+        if (answers[q.id] === q.a) pts += data.pointsPerBlank;
+      });
+    });
+    addScore(pts);
+  };
+
+  return (
+    <div className="animate-in fade-in duration-300">
+      <div className="flex items-center gap-3 text-2xl font-bold text-blue-800 mb-2">
+        <Edit className="w-8 h-8" /> 題型三：{data.title}
+      </div>
+      <p className="text-gray-600 font-medium mb-6">請從下拉選單中，選出最適合的答案填入空格中。</p>
+
+      <div className="space-y-8">
+        {data.sections.map((section, sIdx) => (
+          <div key={sIdx} className="bg-blue-50/50 p-5 rounded-2xl border-2 border-blue-100">
+            <h3 className="font-bold text-lg text-blue-900 mb-4">{section.subtitle}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {section.questions.map(q => {
+                const isCorrect = isSubmitted ? answers[q.id] === q.a : null;
+                return (
+                  <div key={q.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border-2 transition-colors ${
+                    isSubmitted 
+                      ? isCorrect ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"
+                      : "bg-white border-blue-200"
+                  }`}>
+                    <div className="flex-1 text-gray-800 font-medium">{q.q}</div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <select
+                        value={answers[q.id] || ""}
+                        onChange={(e) => handleChange(q.id, e.target.value)}
+                        disabled={isSubmitted}
+                        className={`p-2 border-2 rounded-lg font-bold min-w-[120px] shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                          isSubmitted 
+                            ? isCorrect ? "border-emerald-500 text-emerald-700 bg-emerald-50" : "border-red-500 text-red-700 bg-red-50"
+                            : "border-gray-300 text-gray-700 bg-white"
+                        }`}
+                      >
+                        <option value="" disabled>請選擇...</option>
+                        {section.options.map(opt => (
+                          <option key={opt.val} value={opt.val}>{opt.label}</option>
+                        ))}
+                      </select>
+                      {isSubmitted && (isCorrect ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <XCircle className="w-5 h-5 text-red-500" />)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {errorMsg && (
+        <div className="mt-4 flex items-center justify-center text-red-500 font-bold gap-2">
+          <AlertTriangle className="w-5 h-5" /> {errorMsg}
+        </div>
+      )}
+
+      {isSubmitted && <TeacherExplanation text={data.explanation} />}
+
+      <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+        {!isSubmitted ? (
+          <button onClick={handleSubmit} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-blue-600 hover:bg-blue-500 text-white transform hover:-translate-y-1 transition-all">
+            確定答案
+          </button>
+        ) : (
+          <button onClick={onNext} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            下一題 <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LiteracyQuestion({ data, questionIndex, onNext, addScore }) {
+  const [answers, setAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (qId, val) => {
+    if (isSubmitted) return;
+    setAnswers(prev => ({ ...prev, [qId]: val }));
+  };
+
+  const handleSubmit = () => {
+    if (Object.keys(answers).length < data.questions.length || Object.values(answers).some(v => !v)) {
+      setErrorMsg("請將所有題目作答完畢後再送出喔！");
+      return;
+    }
+    setErrorMsg("");
+    setIsSubmitted(true);
+    let pts = 0;
+    data.questions.forEach(q => {
+      if (answers[q.id] === q.a) pts += data.pointsPerQuestion;
+    });
+    addScore(pts);
+  };
+
+  return (
+    <div className="animate-in fade-in duration-300">
+      <div className="flex items-center gap-3 text-2xl font-bold text-purple-800 mb-2">
+        <FileText className="w-8 h-8" /> 題型四：{data.title}
+      </div>
+      <p className="text-gray-600 font-medium mb-6">請仔細閱讀下方的地震報告，並回答相關問題。</p>
+
+      {/* Simulated Earthquake Report */}
+      <div className="bg-[#fffdf7] border-4 border-gray-400 p-6 rounded-xl mb-8 shadow-md text-gray-800 font-mono tracking-tight relative overflow-hidden">
+         <div className="absolute top-0 right-0 bg-red-600 text-white font-bold px-4 py-1 rounded-bl-xl text-sm">官方發布</div>
+         <h3 className="text-center font-extrabold text-2xl mb-4 border-b-2 border-gray-300 pb-3">{data.report.title}</h3>
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-[1.05rem]">
+            <div><span className="font-bold">編號：</span>{data.report.number}</div>
+            <div><span className="font-bold">日期：</span>{data.report.date}</div>
+            <div><span className="font-bold">時間：</span>{data.report.time}</div>
+            <div><span className="font-bold">深度：</span>{data.report.depth}</div>
+            <div><span className="font-bold">芮氏規模：</span>{data.report.magnitude}</div>
+            <div className="sm:col-span-2"><span className="font-bold">位置：</span>{data.report.location}</div>
+         </div>
+         <div className="mt-5 pt-4 border-t-2 border-gray-300">
+            <div className="font-bold mb-3 text-lg">各地最大震度 (採用109年新制10級震度分級)：</div>
+            <div className="flex flex-wrap gap-2">
+              {data.report.intensities.map((int, i) => (
+                <span key={i} className="bg-gray-200 border border-gray-300 px-3 py-1 rounded-md text-sm font-semibold">{int}</span>
+              ))}
+            </div>
+         </div>
+      </div>
+
+      {/* Questions */}
+      <div className="space-y-4">
+        {data.questions.map(q => {
+          const isCorrect = isSubmitted ? answers[q.id] === q.a : null;
+          return (
+            <div key={q.id} className={`flex flex-col lg:flex-row lg:items-center gap-3 p-4 rounded-xl border-2 transition-colors ${
+              isSubmitted 
+                ? isCorrect ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"
+                : "bg-white border-purple-200"
+            }`}>
+              <div className="flex-1 text-gray-800 font-bold text-lg">{q.q}</div>
+              <div className="flex items-center gap-3 shrink-0">
+                <select
+                  value={answers[q.id] || ""}
+                  onChange={(e) => handleChange(q.id, e.target.value)}
+                  disabled={isSubmitted}
+                  className={`p-2 border-2 rounded-lg font-bold min-w-[200px] max-w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 ${
+                    isSubmitted 
+                      ? isCorrect ? "border-emerald-500 text-emerald-700 bg-emerald-50" : "border-red-500 text-red-700 bg-red-50"
+                      : "border-gray-300 text-gray-700 bg-white"
+                  }`}
+                >
+                  <option value="" disabled>請選擇...</option>
+                  {q.options.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                {isSubmitted && (isCorrect ? <CheckCircle className="w-6 h-6 text-emerald-500" /> : <XCircle className="w-6 h-6 text-red-500" />)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {errorMsg && (
+        <div className="mt-4 flex items-center justify-center text-red-500 font-bold gap-2">
+          <AlertTriangle className="w-5 h-5" /> {errorMsg}
+        </div>
+      )}
+
+      {isSubmitted && <TeacherExplanation text={data.explanation} />}
+
+      <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+        {!isSubmitted ? (
+          <button onClick={handleSubmit} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-purple-600 hover:bg-purple-500 text-white transform hover:-translate-y-1 transition-all">
+            確定答案
+          </button>
+        ) : (
+          <button onClick={onNext} className="px-8 py-3 rounded-full font-bold text-lg shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transform hover:-translate-y-1 transition-all flex items-center gap-2">
+            查看總成績 <Award className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+
+  const currentData = QUIZ_DATA[currentIndex];
+
+  const handleScrollToTop = () => {
+    try { 
+      if (typeof window !== 'undefined' && window.scrollTo) {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+      }
+    } catch (e) {
+      console.warn("scrollTo issue caught:", e);
+    }
+  };
+
+  const handleNext = () => {
+    handleScrollToTop();
+    if (currentIndex < QUIZ_DATA.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      setIsFinished(true);
+    }
+  };
+
+  const addScore = (pts) => {
+    setTotalScore(prev => prev + pts);
+  };
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setTotalScore(0);
+    setIsFinished(false);
+    handleScrollToTop();
+  };
+
+  const getRemark = (score) => {
+    if (score === MAX_SCORE) return "太神啦！你是自然科學的滿分大師！ 🏆";
+    if (score >= MAX_SCORE * 0.8) return "表現非常優異！觀念很清楚喔，繼續保持！ 🌟";
+    if (score >= MAX_SCORE * 0.6) return "順利及格囉！有些小地方容易混淆，再複習一下會更棒！ 👍";
+    return "沒關係，失敗為成功之母！老師的詳解多看幾次，我們再挑戰一次！ 💪";
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F0FDF4] font-sans py-8 px-4 flex flex-col items-center overflow-x-hidden">
+      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-emerald-800/10 flex flex-col">
+        
+        {/* Header */}
+        <div className="bg-emerald-700 text-white p-6 relative overflow-hidden shrink-0">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent mix-blend-overlay"></div>
+          <div className="flex flex-col md:flex-row items-center justify-between relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="bg-white p-2 rounded-full">
+                <BookOpen className="w-8 h-8 text-emerald-700" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide">國小自然科學挑戰賽</h1>
+            </div>
+            {!isFinished && (
+              <div className="mt-4 md:mt-0 bg-emerald-800/50 px-4 py-2 rounded-full font-bold border border-emerald-500/50 text-emerald-50 flex items-center gap-2 shadow-inner">
+                <span className="text-sm opacity-80">總進度</span>
+                <span className="text-lg">{currentIndex + 1} / {QUIZ_DATA.length}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="p-6 md:p-10 flex-1 bg-white relative">
+          {!isFinished ? (
+            <div className="min-h-[400px]">
+              {currentData.type === 'mc' || currentData.type === 'tf' ? (
+                <McTfQuestion 
+                  key={currentIndex} 
+                  data={currentData} 
+                  questionIndex={currentIndex} 
+                  onNext={handleNext} 
+                  addScore={addScore} 
+                />
+              ) : currentData.type === 'match' ? (
+                <MatchQuestion
+                  key={currentIndex}
+                  data={currentData}
+                  questionIndex={currentIndex}
+                  onNext={handleNext}
+                  addScore={addScore}
+                />
+              ) : currentData.type === 'checkbox' ? (
+                <CheckboxQuestion
+                  key={currentIndex}
+                  data={currentData}
+                  questionIndex={currentIndex}
+                  onNext={handleNext}
+                  addScore={addScore}
+                />
+              ) : currentData.type === 'tf_list' ? (
+                <TrueFalseListQuestion
+                  key={currentIndex}
+                  data={currentData}
+                  questionIndex={currentIndex}
+                  onNext={handleNext}
+                  addScore={addScore}
+                />
+              ) : currentData.type === 'fill' ? (
+                <FillQuestion
+                  key={currentIndex}
+                  data={currentData}
+                  questionIndex={currentIndex}
+                  onNext={handleNext}
+                  addScore={addScore}
+                />
+              ) : currentData.type === 'literacy' ? (
+                <LiteracyQuestion
+                  key={currentIndex}
+                  data={currentData}
+                  questionIndex={currentIndex}
+                  onNext={handleNext}
+                  addScore={addScore}
+                />
+              ) : null}
+            </div>
+          ) : (
+            /* Result Screen */
+            <div className="text-center py-10 animate-in zoom-in-95 duration-500">
+              <div className="mb-6 relative inline-block">
+                <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                <div className="w-32 h-32 bg-emerald-100 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-500 shadow-xl relative z-10">
+                  <Award className="w-16 h-16 text-emerald-600" />
+                </div>
+              </div>
+              
+              <h2 className="text-4xl font-black text-gray-800 mb-2">測驗完成！</h2>
+              <p className="text-gray-500 font-medium mb-6">總分為 {MAX_SCORE} 分</p>
+
+              <div className="text-7xl font-black text-emerald-600 my-6 drop-shadow-md">
+                {totalScore} <span className="text-3xl text-gray-500 font-bold">分</span>
+              </div>
+              
+              <div className="bg-yellow-50 border-2 border-yellow-200 p-8 rounded-2xl mb-10 shadow-sm max-w-lg mx-auto">
+                <p className="text-2xl font-bold text-yellow-800 leading-relaxed">{getRemark(totalScore)}</p>
+              </div>
+              
+              <button
+                onClick={handleRestart}
+                className="px-10 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold text-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-3 mx-auto"
+              >
+                <RefreshCw className="w-6 h-6" />
+                重新挑戰
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <footer className="mt-8 text-emerald-700/60 font-medium text-center">
+        <p>持續學習，探索自然科學的奧秘！ 🌿</p>
+      </footer>
+    </div>
+  );
+}
